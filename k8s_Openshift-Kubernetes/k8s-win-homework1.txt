@@ -1,0 +1,45 @@
+kubectl get namespaces				# Посмотреть все namespaces
+kubectl get ns					# Посмотреть все namespaces
+kubectl create namespace homework		# Создать namespace homework
+kubectl describe namespace homework		# Посмотреть детали namespace homework
+kubectl delete namespace homework
+
+kubectl create deployment web --image=gcr.io/google-samples/hello-app:1.0
+	Что создаст эта команда:
+		Deployment с именем web
+		ReplicaSet (управляет репликами)
+		Pod(s) с контейнером из образа hello-app:1.0
+	kubectl create deployment 			- создать деплоймент (управление подами)
+	web 						- имя деплоймента
+	--image=gcr.io/google-samples/hello-app:1.0 	- образ контейнера
+deployment						- это "умный контроллер" для управления подами. В отличие от простого пода (kubectl run), деплоймент обеспечивает:
+Простой pod (kubectl run)		Деплоймент (kubectl create deployment)
+Один контейнер				Реплики (можно масштабировать)
+Если упал - не перезапускается		Автоматический перезапуск
+Нет стратегии обновления		Можно обновлять версии "на лету"
+
+kubectl expose deployment web --type=NodePort --port=8080
+						# Создать императивным способом service 
+minikube service -n homework web --url		# При помощи minikube посмотреть адрес сервиса для доступа к приложению.
+		http://127.0.0.1:51949
+		! Because you are using a Docker driver on windows, the terminal needs to be open to run it.
+Browser http://127.0.0.1:51949
+		Hello, world!
+		Version: 1.0.0
+		Hostname: web-769bbccc48-b8mch
+minikube ip					# Внешний адрес кластера
+kubectl get svc web
+	NAME   TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+	web    NodePort   10.103.147.94   <none>        8080:32034/TCP   14m
+192.168.49.2:32034
+----- 
+✅ Порт-форвардинг работает - соединение устанавливается
+✅ Ingress контроллер отвечает - возвращает 404 от nginx
+❌ Ingress не находит подходящий host/path для запроса
+Проблема: Запрос без правильного Host header
+Когда вы делаете curl http://localhost:8888, ingress ищет правило для host localhost, но у вас есть правило только для hello-world.info.
+Решения:
+Способ 1: Используйте правильный Host header
+curl -H "Host: hello-world.info" http://localhost:8888
+=======================================
+

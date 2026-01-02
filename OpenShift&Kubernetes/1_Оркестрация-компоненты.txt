@@ -1,0 +1,61 @@
+https://basecode.t1.ru/viewer/sessions/364/materials/1092
+Kubernetes >>> OpenShift
+Kubernetes позволяет запуск docker от root
+Контейнеры-dockers
+runtime
+Изоляция
+--------
+Оркестрация
+- это администрирование кластера с большим количеством объектов.
+В кластере Kubernetes используются несколько объектов, которые описывают архитектуру системы и управление контейнерами. Среди них:
+	узлы (Nodes), 
+	поды (Pods), 
+	сервисы (Services) и 
+	объёмы (Volumes). 
+
+Кластер/Cluster - совокупность узлов/нод.
+Ноды/Nodes: 
+worker node -> VirtualMachine где запускается контейнезированное приложение (1-5000nodes):
+	kubelet
+	kube proxy
+	runtime=docker/crio	
+master node => Control Plane - 1,3,5 (нечётное количество) следит/ят за основными событиями в Cluster (worker node)
+		Control Plane: 
+			kube-api-server
+			kube-scheduler
+			etcd
+			kube-controller-manager
+Bootstrap server/node >> для инсталяции Кластера
+
+=======
+master node/etcd: - распределённое, высоконадёжное хранилище формата Ключ-Значение с информацией по Кластеру/Cluster (Deployments, ConfigMap, Secrets).
+master node/etcd: - важно делать backup!!
+
+master node/kube-api-server: - REST API endpoint для подключения к etcd.
+master node/kube-api-server: - через него происходит аутентификация, авторизация и mission control.
+
+master node/kube-scheduler: - планировщик, который запускает Pod на той или иной Node. 
+master node/kube-scheduler: - следит за ресурсами Node/Pod
+
+master node/kube-controller-manager/nodes	- следит за состоянием каждой ноды;
+master node/kube-controller-manager/endpoints	- связывает по сети service-pod;
+master node/kube-controller-manager/avtorization- авторизация Токенов пользователей; 
+master node/kube-controller-manager/replics	- следит за тем, что нужное кол-во реплик запущено на нодах.
+
+
+worker node/kubelet	- агент, запускающий контейнер внутри каждого Pod и следит за его lifecicle;
+worker node/kubelet	- проверяет liveness probe; rediness probe and etc.
+
+worker node/kube proxy	- сетевой посредник/proxy, работая с API-tables, что позволяет получить доступ к Pod по сети;
+
+worker node/runtime	- служба запуска dockers/conteinerD/crio
+
+Plagging - kube-system namespace.
+
+API - REST API interface
+apiVersion: v1 (цифра означает номер стабильной версии)
+metadata:
+spec:
+
+
+

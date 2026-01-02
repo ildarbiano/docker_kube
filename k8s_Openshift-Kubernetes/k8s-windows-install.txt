@@ -1,0 +1,117 @@
+=============== Установите Docker Desktop: ===================================================
+	Скачайте с официального сайта
+	Запустите установщик Docker Desktop Installer.exe
+	Включите WSL 2 во время установки
+	Перезагрузите компьютер
+docker --version			
+docker version			Если команда работает - Docker запущен.
+docker run hello-world
+docker ps
+	CONTAINER ID   IMAGE                                 COMMAND                  CREATED         STATUS         PORTS                                                                                                                                  NAMES
+	1f969c4e9284   gcr.io/k8s-minikube/kicbase:v0.0.48   "/usr/local/bin/entr…"   2 minutes ago   Up 2 minutes   127.0.0.1:55736->22/tcp, 127.0.0.1:55737->2376/tcp, 	127.0.0.1:55739->5000/tcp, 127.0.0.1:55740->8443/tcp, 127.0.0.1:55738->32443/tcp   minikube
+=========== Docker Desktop через Powershell ==========================================
+powershell
+Get-Service -Name "Docker Desktop Service"				# Проверьте, запущен ли Docker Desktop и Kubernetes
+Get-Service | Where-Object {$_.Name -like "*docker*"}			# Посмотреть все службы Docker
+Get-Service | Where-Object {$_.DisplayName -like "*Docker*"}		# найти службу по отображаемому имени
+Get-Process "Docker Desktop" -IncludeUserName | Format-Table Name, Id, UserName	# Найти процесс Docker Desktop с указанием пользователя
+Stop-Service -Name "Docker Desktop Service" -Force			# Остановить Docker службу
+Stop-Process -Name "Docker Desktop" -Force -ErrorAction SilentlyContinue	# 
+& "C:\Program Files\Docker\Docker\Docker Desktop.exe"			# Запустите Docker Desktop через исполняемый файл
+Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"	# Запустите Docker Desktop через Start-Process
+Start-Service -Name "Docker Desktop Service"				# Запустить Docker службу  
+Restart-Service -Name "Docker Desktop Service" -Force			# Или одной командой
+
+=========== Запустите Docker Desktop через GUI =========================================
+Найдите "Docker Desktop" в меню Пуск
+Запустите приложение
+Дождитесь полной загрузки (иконка в системном трее перестанет мигать)
+powershell
+Start-Process "Docker Desktop"			# Найдите и запустите Docker Desktop
+
+================ Установите Minikube: ===========================================================
+		Скачайте minikube-installer.exe с официального сайта или в PowerShell:
+powershell
+New-Item -Path 'c:\' -Name 'minikube' -ItemType Directory -Force
+Invoke-WebRequest -OutFile 'c:\minikube\minikube.exe' -Uri 'https://github.com/kubernetes/minikube/releases/latest/download/minikube-windows-amd64.exe' -UseBasicParsing
+
+------------------------- Перезапустите minikube полностью ----------------------
+powershell
+minikube stop					# Остановите minikube
+minikube delete					# Удалите старый кластер. Исчезнет в GUI Docker.Desktop
+minikube start --driver=docker			# Запуск Minikube с Docker
+minikube start --driver=docker --memory=6096 --cpus=3 --disk-size=30g
+minikube status					# выведет статус компонент Kubernetes внутри контейнера
+	minikube
+	type: Control Plane
+	host: Running
+	kubelet: Running
+	apiserver: Running
+	kubeconfig: Configured
+minikube update-context				# Исправьте конфигурацию kubectl.
+kubectl get nodes				# после запуска, Должна быть нода. Использует системный kubectl (который вы установили). Когда конфигурация настроена правильно. kubectl - "обычный" способ, который требует правильной настройки.
+kubectl get pods -A				# Для повседневной работы (удобнее)
+	NAMESPACE     NAME                               READY   STATUS    RESTARTS      AGE
+	kube-system   coredns-66bc5c9577-vx2n4           1/1     Running   0             13m
+	kube-system   etcd-minikube                      1/1     Running   0             13m
+	kube-system   kube-apiserver-minikube            1/1     Running   0             13m
+	kube-system   kube-controller-manager-minikube   1/1     Running   0             13m
+	kube-system   kube-proxy-74rc8                   1/1     Running   0             13m
+	kube-system   kube-scheduler-minikube            1/1     Running   0             13m
+	kube-system   storage-provisioner                1/1     Running   1 (13m ago)   13m
+minikube kubectl -- get nodes -o wide		# после запуска, Должна быть нода. Использует kubectl ВНУТРИ minikube контейнера/VM. Версия kubectl совместима с версией Kubernetes в minikube. Гарантированно работает с текущим кластером minikube. Не зависит от вашей системной установки kubectl. minikube kubectl -- - это "безопасный" способ. Полезно. Используйте minikube kubectl -- когда:
+powershell
+minikube kubectl -- get nodes			# Когда ваш системный kubectl не настроен
+minikube kubectl -- version			# Когда есть конфликт версий
+minikube kubectl -- apply -f deployment.yaml	# Когда нужно гарантировать совместимость
+    > kubectl.exe.sha256:  64 B / 64 B [---------------------] 100.00% ? p/s 0s
+    > kubectl.exe:  59.26 MiB / 59.26 MiB [---------] 100.00% 7.93 MiB p/s 7.7s
+	NAME       STATUS   ROLES           AGE   VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION                     CONTAINER-RUNTIME
+	minikube   Ready    control-plane   89s   v1.34.0   192.168.49.2   <none>        Ubuntu 22.04.5 LTS   6.6.87.2-microsoft-standard-WSL2   docker://28.4.0
+minikube ip					# Внешний адрес кластера
+
+================= Запуск манифестов ===============================================================
+kubectl create namespace homework		# Создать namespace
+kubectl apply -f deployment.yaml		# применить манифест
+kubectl apply -f deployment.yaml -n homework	# Создать namespace  и применить манифест
+kubectl apply -f dashboard-admin.yaml		# применить манифест Kubernetes Dashboard
+
+
+----------------- Установка Kubernetes Dashboard ---------------------------------------------------
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+					# Установить официальную дашборду
+minikube dashboard			# Включите дашборду в minikube. Эта команда автоматически: - Установит дашборду - Настроит доступ - Откроет в браузере
+kubectl -n kubernetes-dashboard create token admin-user > token.txt
+					# Получите токен для входа. Скопируйте полученный токен - он понадобится для входа в Dashboard.
+kubectl proxy				# запустит прокси на http://localhost:8001
+http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+
+
+
+================= Установите WSL 2 - Windows Subsystem for Linux 2 ================================
+WSL 2 — это вторая версия подсистемы Windows для Linux, позволяющая запускать полноценную среду Linux непосредственно в Windows, без необходимости использования виртуальной машины или двойной загрузки. Она использует технологию виртуализации для запуска собственного ядра Linux в упрощенной служебной виртуальной машине, что обеспечивает полную совместимость с системными вызовами и значительно повышает производительность файловой системы. 
+	1. Установите WSL 2 
+		powershell
+wsl --list --online			# доступные дистрибутивы
+wsl --install				# установите дистрибутив по умолчанию:
+wsl --install -d Ubuntu			# Установите Ubuntu (рекомендуется)
+wsl --list --verbose
+		NAME      STATE           VERSION
+		* Ubuntu    Running         2
+wsl --shutdown				# Или остановите все WSL дистрибутивы
+
+
+================= Установите kubectl ==============================================
+================= Установите Chocolatey (требует прав администратора) =============
+Chocolatey — это менеджер пакетов для Windows, который позволяет устанавливать, обновлять и удалять программное обеспечение через командную строку. Он аналогичен менеджерам пакетов в Linux, таким как apt или yum, и упрощает процесс автоматической установки тысяч программ. Chocolatey основан на технологиях PowerShell и NuGet, что позволяет управлять программами с помощью простых команд, минуя ручную установку с сайтов разработчиков. 
+Запустите PowerShell от имени администратора и выполните:
+Set-ExecutionPolicy Bypass -Scope Process -Force
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+powershell
+choco install kubernetes-cli -y			# Установите последнюю версию kubectl
+kubectl version --client --short		# После установки проверьте версию
+kubectl version --client				# После установки проверьте версию
+kubectl config view						
+
+

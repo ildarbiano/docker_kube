@@ -1,0 +1,23 @@
+PS C:\Users\123\acadeny_IT_local\k8s_Openshift-Kubernetes\hw_1> .\start-cluster_docker.ps1
+PS C:\Users\123\acadeny_IT_local\k8s_Openshift-Kubernetes\hw_1> .\start-application.ps1
+
+#------------ получить работающий URL вашего приложения! ------
+PS C:\Users\123\acadeny_IT_local\k8s_Openshift-Kubernetes\hw_1> 
+minikube service web-service-1 -n homework-1 --url
+minikube service web-service-2 -n homework-2 --url
+http://127.0.0.1:57596
+! Because you are using a Docker driver on windows, the terminal needs to be open to run it.
+
+#------------ получить работающий URL Dashboard ---------------
+PS C:\Users\123\acadeny_IT_local\k8s_Openshift-Kubernetes\hw_1> 
+minikube dashboard --url
+* Verifying dashboard health ...
+* Launching proxy ...
+* Verifying proxy health ...
+http://127.0.0.1:57668/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+
+
+
+
+
+

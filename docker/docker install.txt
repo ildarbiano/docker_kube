@@ -1,0 +1,38 @@
+sudo apt update
+Установите необходимые зависимости:
+bash
+sudo apt install apt-transport-https ca-certificates curl gnupg lsb-release
+
+Добавьте официальный GPG-ключ Docker:
+bash
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+Добавьте репозиторий Docker в источники пакетов:
+bash
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+
+Обновите индекс пакетов снова (теперь с репозиторием Docker):
+bash
+sudo apt update
+
+Установите Docker Engine, Containerd и Docker Compose:
+bash
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+Проверьте установку (без sudo пока не сработает):
+bash
+sudo docker --version
+sudo docker run hello-world
+
+
+(Важно!) Добавьте вашего пользователя в группу docker, чтобы не использовать sudo перед каждой командой:
+bash
+sudo usermod -aG docker $USER
+После этой команды необходимо выйти из системы и зайти заново (или перезапустить терминал/сервер), чтобы изменения вступили в силу.
+
+Проверка установки (после перелогина):
+bash
+docker --version
+docker run hello-world

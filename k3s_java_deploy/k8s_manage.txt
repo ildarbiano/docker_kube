@@ -1,0 +1,7 @@
+======== Запуск и проверки ================
+minikube start --driver=docker --memory=1800mb --cpus=2		# Запускаем Minikube
+kubectl get nodes						# Проверяем кластер
+kubectl cluster-info						# Проверяем кластер
+
+Minikube снова завис при запуске. Проблема с Docker 18.09 и малым количеством RAM. 
+Давайте используем K3s - самый легкий вариант:

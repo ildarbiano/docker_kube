@@ -1,0 +1,54 @@
+Open vSwitch - это виртуальный сетевой коммутатор, часто используемый в виртуализации и облачных средах (OpenStack, Kubernetes, Docker и т.д.).
+
+sudo systemctl status openvswitch-switch
+sudo systemctl status ovsdb-server
+sudo systemctl status ovs-vswitchd
+
+3. Включить автозагрузку сервисов
+bash
+sudo systemctl enable openvswitch-switch
+sudo systemctl enable ovsdb-server
+sudo systemctl enable ovs-vswitchd
+
+4. Если OVS не установлен - установить
+bash
+# Для Ubuntu/Debian:
+sudo apt update & sudo apt install openvswitch-switch openvswitch-common
+
+
+5. Перезапустить все сервисы OVS
+bash
+sudo systemctl restart openvswitch-switch
+
+
+6. Проверить работу OVS
+bash
+ovs-vsctl --version		# Проверить версию OVS
+ovs-vsctl show			# Показать информацию о OVS
+ovs-vsctl get-manager		# Проверить статус демонов
+
+
+7. Если проблемы остаются - посмотреть логи
+bash
+sudo journalctl -u openvswitch-switch -f
+sudo journalctl -u ovsdb-server -f
+
+
+8. Переустановка OVS (если ничего не помогает)
+bash
+sudo apt remove --purge openvswitch-*
+sudo apt autoremove
+sudo apt install openvswitch-switch
+
+
+Проверка решения:
+После выполнения этих шагов выполните:
+bash
+ovs-vsctl show			# Если команда выполняется без ошибок и показывает информацию о OVS, значит проблема решена.
+
+
+Дополнительная информация:
+OVS часто используется в Kubernetes (Calico, Flannel), OpenStack, Docker сетях
+Если вы не используете OVS напрямую, возможно он был установлен как зависимость другого ПО
+В некоторых случаях может потребоваться перезагрузка системы после установки/настройки OVS
+

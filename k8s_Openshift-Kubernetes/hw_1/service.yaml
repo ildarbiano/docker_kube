@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service-1
+  namespace: homework-1
+  labels:
+    app: web-service-1-lbl    # ← ЭТО НЕ ВАЖНО для связи Service с Pods
+                               # Эти labels используются для поиска/группировки сервисов
+                                  # Могут быть ЛЮБЫМИ, не обязаны совпадать
+spec:
+  selector:
+    app: web-app-1-sel-labl    # ← должно совпадать с labels Pod'ов в deployment.
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  type: LoadBalancer  # ----- для получения EXTERNAL-IP
+  #type: ClusterIP #---- это тип сервиса по умолчанию, который:
+                  # Доступен только внутри кластера.
+                  # Не получает внешний IP
+                  # Используется для внутренней коммуникации между подами

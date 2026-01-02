@@ -1,0 +1,159 @@
+sudo systemctl status k3s			# Проверим статус k3s	
+minikube status					# Проверим статус Minikube
+helm version					# Проверяем установку
+kubectl cluster-info				# Проверим что кластер работает
+helm list -n t1-k8s-app				# Проверим историю Helm релизов
+helm list --all-namespaces			# Посмотрим все существующие release
+
+================================== get ===========================================================================
+kubectl get all -n t1-k8s-app			# выводит список всех доступных pods в текущем пространстве имён. Проверим все ресурсы в namespace. Должны видеть: Pods, Service, Deployment
+kubectl get all -n t1-k8s-app -l app=helm-chat-t1-k8s-app		
+						# Проверим все ресурсы с метками нашего приложения
+kubectl get nodes				# выводит список всех узлов (физических или виртуальных машин) в кластере, показывая их состояние и другую информацию. Узлы — это машины, на которых запускаются приложения в виде подов (pods). Что делает команда: Она запрашивает у API-сервера Kubernetes данные о текущем состоянии узлов. Что такое nodes: Это рабочие машины (серверы), которые образуют кластер. Они могут быть как физическими, так и виртуальными. Для чего используется: Команда позволяет администраторам и разработчикам: Проверять работоспособность: Убедиться, что все узлы активны и готовы к работе. Получать информацию: Увидеть статус, IP-адреса, версии операционной системы и другую важную информацию о каждом узле. Управлять кластером: Понимать, на каких машинах запущены контейнеры и как распределена нагрузка. 
+kubectl get namespaces				# Проверить все существующие namespace
+kubectl get ns					# Проверить все существующие namespace
+kubectl get pods --all-namespaces		# 
+kubectl get pods -n t1-k8s-app -o wide		# Проверим что поды действительно работают. Посмотрим IP подов. Должны увидеть те же IP, что в Endpoints.
+kubectl get pods -n t1-k8s-app -o custom-columns="POD:.metadata.name,IMAGE:.spec.containers[*].image"
+						# Проверим образы, который использует "pods -n t1-k8s-app" (java-app-image.1.0.0:latest)
+kubectl get pods -n t1-k8s-app			# Проверим что поды действительно работают, Running. выводит список всех доступных pods в текущем пространстве имён.
+		Running				- Ok
+		CrashLoopBackOff		- под (pod) постоянно перезапускается из-за сбоя контейнера внутри него. Kubernetes пытается перезапустить контейнер, но он сразу же завершается с ошибкой, поэтому система вводит экспоненциальную задержку между попытками перезапуска, что и отображается как состояние CrashLoopBackOff. Основные причины — это ошибки в приложении, неправильная конфигурация, недостаток ресурсов или проблемы с зависимостями. 
+		ImagePullBackOff 		— это распространённая ошибка в Kubernetes, означающая, что у кластера не получается скачать образ контейнера для запуска пода. Чаще всего это происходит из-за опечатки в имени образа, использования несуществующего тега или попытки доступа к закрытому репозиторию без предоставления необходимых учётных данных. Эта ошибка приводит к тому, что под не может запуститься, поскольку ему необходим этот образ для создания контейнера. 
+kubectl get svc --all-namespaces		# выводит список всех ресурсов типа "Service" (сервис, svc) в текущем кластере Kubernetes. 
+kubectl get svc -n kube-system -l app.kubernetes.io/name=traefik
+NAMESPACE     NAME                           TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)                      AGE
+	default       kubernetes                     ClusterIP      10.43.0.1       <none>         443/TCP                      3d21h
+	kube-system   kube-dns                       ClusterIP      10.43.0.10      <none>         53/UDP,53/TCP,9153/TCP       3d21h
+	kube-system   metrics-server                 ClusterIP      10.43.130.145   <none>         443/TCP                      3d21h
+	kube-system   traefik                        LoadBalancer   10.43.193.107   192.168.0.44   80:32497/TCP,443:31266/TCP   3d21h
+	t1-k8s-app    helm-chat-t1-k8s-app-service   ClusterIP      10.43.210.81    <none>         8080/TCP                     3d20h
+
+						# для понимания как подключиться к Traefik
+	NAME      TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)                      AGE
+	traefik   LoadBalancer   10.43.193.107   192.168.0.44   80:32497/TCP,443:31266/TCP   3d19h
+
+kubectl get service -n t1-k8s-app helm-chat-t1-k8s-app-service -o yaml | grep -A5 -B5 affinity
+						# Проверим Session Affinity, если нет вывода, то Session Affinity отключен.
+kubectl get ingressclasses			# Посмотрим на классы ingress в кластере. nginx/traefik. Сопоставить с указанием в Values.yaml
+	NAME      CONTROLLER                      PARAMETERS   AGE
+	traefik   traefik.io/ingress-controller   <none>       3d16h
+kubectl get ingress -n t1-k8s-app		#  ingress, проверим его
+	NAME                           CLASS   	HOSTS        ADDRESS   		PORTS   AGE
+	helm-chat-t1-k8s-app-ingress   nginx   	demo.local             		80      4h17m
+	helm-chat-t1-k8s-app-ingress   traefik   demo.local   192.168.0.44 	80      3d16h
+kubectl get endpoints -n t1-k8s-app helm-chat-t1-k8s-app-service -o yaml
+						# Прочитать Endpoints сервиса
+kubectl get endpoints -n t1-k8s-app helm-chat-t1-k8s-app-service	
+						# Проверим Endpoints сервиса
+	Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+	NAME                           ENDPOINTS                        AGE
+	helm-chat-t1-k8s-app-service   10.42.0.10:8080,10.42.0.9:8080   5h31m
+kubectl get pods -n t1-k8s-app -o custom-columns="POD:.metadata.name,IMAGE:.spec.containers[*].image"
+						# Проверим образы, который используется (java-app-image.1.0.0:latest)
+kubectl get ingress -n t1-k8s-app		#  ingress, проверим его
+	NAME                           CLASS   HOSTS        ADDRESS   PORTS   AGE
+	helm-chat-t1-k8s-app-ingress   nginx   demo.local             80      4h17m
+	На порту 80 работает Ingress Controller (в вашем случае - NGINX Ingress Controller). Он слушает входящие HTTP-запросы на порту 80, анализирует заголовок Host (в вашем случае demo.local) и перенаправляет трафик на соответствующие Pod'ы вашего приложения. 
+	Порт 80 - Ingress Controller (ВХОДЯЩИЙ трафик) Что: NGINX Ingress Controller Где: Service в namespace ingress-nginx Зачем: Принимает внешние HTTP-запросы
+	Порт 8080 - Ваше приложение (ВНУТРЕННИЙ трафик) Что: Ваш Java-сервис Где: Pod'ы в namespace t1-k8s-app Зачем: Обрабатывает бизнес-логику Описан в Value.yaml
+	Ingress Controller 	определяет "как слушать" (порты, SSL, etc)
+	Ingress Controller 	сам знает, что слушать порт 80 для HTTP-трафика
+	Ingress Controller 	NGINX  по умолчанию использует:
+				Порт 80 для HTTP
+				Порт 443 для HTTPS
+	Ingress Resource 	определяет "куда направлять" (маршрутизация по хостам и путям)
+kubectl get deployments -n t1-k8s-app		# Проверим все Deployments в namespace
+kubectl get replicasets -n t1-k8s-app		# Посмотрим ReplicaSets. Создан новый ReplicaSet с 1 подом. Новый под проходит readiness проверки. Когда новый под готов, старые будут постепенно удаляться. В итоге останутся только новые поды.
+kubectl get replicasets -n t1-k8s-app --show-labels
+						# Проверим все ReplicaSets и их владельцев. Посмотрим ReplicaSets. Создан новый ReplicaSet с 1 подом. Новый под проходит readiness проверки. Когда новый под готов, старые будут постепенно удаляться. В итоге останутся только новые поды.
+
+================================== decribe ============================================================================
+kubectl describe replicaset -n t1-k8s-app helm-chat-t1-k8s-app-app-67d6b555d6 | grep -A 10 "Controlled By"
+						# Посмотрим какие ресурсы управляют ReplicaSet
+kubectl describe deployment -n t1-k8s-app helm-chat-t1-k8s-app-app | grep -A 5 "Strategy"
+						# Проверим стратегию Deployment'а
+kubectl describe endpoints -n t1-k8s-app helm-chat-t1-k8s-app-service
+						# Проверим текущие подключения. Посмотрим активные подключения к сервису
+kubectl describe service -n t1-k8s-app helm-chat-t1-k8s-app-service | grep -i affinity
+						# Проверим настройки сервиса Service.
+	Session Affinity:         None		# Session Affinity (прилипание сессии) По умолчанию Service использует sessionAffinity: None - балансировка не работает, некоторые реализации могут временно привязывать клиента к одному поду.
+kubectl describe svc -n kube-system traefik	# service
+kubectl describe service -n t1-k8s-app helm-chat-t1-k8s-app-service
+						# Проверим детали сервиса svc
+	Name:                     helm-chat-t1-k8s-app-service
+	Namespace:                t1-k8s-app
+	Labels:                   app.kubernetes.io/managed-by=Helm
+	Annotations:              meta.helm.sh/release-name: d-1
+ 	                         meta.helm.sh/release-namespace: t1-k8s-app
+	Selector:                 app=helm-chat-t1-k8s-app
+	Type:                     ClusterIP
+	IP Family Policy:         SingleStack
+	IP Families:              IPv4
+	IP:                       10.43.210.81				# Service Это виртуальный IP сервиса в кластере. Постоянный адрес для доступа к приложению. Другие сервисы обращаются по этому IP
+	IPs:                      10.43.210.81
+	Port:                     http  8080/TCP
+	TargetPort:               http/TCP
+	Endpoints:                10.42.0.10:8080,10.42.0.9:8080	# Это реальные IP ваших подов (контейнеров). Два разных IP = два разных пода (реплики)
+	Session Affinity:         None
+	Internal Traffic Policy:  Cluster
+	Events:                   <none>
+									10.43.x.x - сеть для Services (виртуальные IP)
+									10.42.x.x - сеть для Pods (реальные контейнеры)
+									Это разные сетевые пространства в Kubernetes
+						Как это работает:
+						┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+						│   Ваш запрос    │ -> │   Service IP     │ -> │    Pod IP       │
+						│192.168.0.44 (VIP│    │   10.43.210.81   │    │  10.42.0.10:8080│
+						│ curl http://... │    │   80\8080        │    │  10.42.0.9:8080 │
+						└─────────────────┘    └──────────────────┘    └─────────────────┘
+kubectl describe endpoints -n t1-k8s-app helm-chat-t1-k8s-app-service
+						# Проверим текущие подключения. Посмотрим активные подключения к сервису
+=================================== log ======================================================================================
+kubectl logs -n t1-k8s-app helm-chat-t1-k8s-app-app-5456ff4cdd-p9s95 -f --tail=1
+									# Проверим хвост логов приложения.
+kubectl logs -n t1-k8s-app -l app=helm-chat-t1-k8s-app			# Проверим логи приложения. Ищем сообщения: "Started", "Tomcat started", "Running"
+	Tomcat started on port(s): 8080 (http) with context path ''
+	Started T1DeployApplication in 3.714 seconds (process running for 4.433)
+
+
+
+===================================
+
+admilya@srv1:~$ curl -v http://192.168.0.44/
+*   Trying 192.168.0.44...
+* TCP_NODELAY set
+* Connected to 192.168.0.44 (192.168.0.44) port 80 (#0)
+> GET / HTTP/1.1
+> Host: 192.168.0.44
+> User-Agent: curl/7.52.1
+> Accept: */*
+>
+< HTTP/1.1 404 Not Found
+< Content-Type: text/plain; charset=utf-8
+< X-Content-Type-Options: nosniff
+< Date: Mon, 27 Oct 2025 06:37:22 GMT
+< Content-Length: 19
+<
+404 page not found
+* Curl_http_done: called premature == 0
+* Connection #0 to host 192.168.0.44 left intact
+
+
+admilya@srv1:~$ curl -v -H "Host: demo.local" http://192.168.0.44/
+*   Trying 192.168.0.44...
+* TCP_NODELAY set
+* Connected to 192.168.0.44 (192.168.0.44) port 80 (#0)
+> GET / HTTP/1.1
+> Host: demo.local
+> User-Agent: curl/7.52.1
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< Content-Length: 35
+< Content-Type: text/plain;charset=UTF-8
+< Date: Mon, 27 Oct 2025 06:39:59 GMT
+<
+* Curl_http_done: called premature == 0
+* Connection #0 to host 192.168.0.44 left intact
+

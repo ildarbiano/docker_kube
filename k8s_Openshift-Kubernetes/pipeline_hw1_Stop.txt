@@ -1,0 +1,4 @@
+PS C:\Users\123\acadeny_IT_local\k8s_Openshift-Kubernetes\hw_1> .\force-stop-app.ps1
+PS C:\Users\123\acadeny_IT_local\k8s_Openshift-Kubernetes\hw_1> .\force-stop-docker.ps1
+
+

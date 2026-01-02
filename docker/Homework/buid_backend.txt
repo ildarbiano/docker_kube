@@ -1,0 +1,48 @@
+ilya@client-ubuntu:~/dockers$ tree
+.
+├── backend/
+├── backend.Dockerfile
+├── backup-arch
+│   ├── backend-todo-list-master/
+│   └── frontend-todo-list-master/
+├── frontend/
+├── frontend.Dockerfile
+├── openshift-homework1-master/
+└── postgres.Dockerfile
+
+
+ilya@client-ubuntu:~/dockers$ 			cat backend.Dockerfile
+FROM openjdk:11-jdk as builder
+WORKDIR application
+ARG JAR_FILE=build/libs/backend-todo-list.jar
+COPY ${JAR_FILE} application.jar
+RUN java -Djarmode=layertools -jar application.jar extract
+
+FROM openjdk:11-jre
+EXPOSE 8080
+WORKDIR application
+COPY --from=builder application/spring-boot-loader/ ./
+COPY --from=builder application/dependencies/ ./
+COPY --from=builder application/snapshot-dependencies/ ./
+COPY --from=builder application/application/ ./
+ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
+
+ilya@client-ubuntu:~/dockers/backend$ 		./gradlew clean build
+ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation.
+
+ilya@client-ubuntu:~/dockers/backend$ 		./gradlew clean build
+Welcome to Gradle 7.1!
+Here are the highlights of this release:
+ - Faster incremental Java compilation
+ - Easier source set configuration in the Kotlin DSL
+For more details see https://docs.gradle.org/7.1/release-notes.html
+Starting a Gradle Daemon (subsequent builds will be faster)
+<==========---> 82% EXECUTING [3m 59s]
+<==========---> 82% EXECUTING [4m 0s]
+BUILD SUCCESSFUL in 4m 51s
+9 actionable tasks: 8 executed, 1 up-to-date
+====================================================== end ========
+Видео разбор домашнего задания. Docker
+:~/dockers/test.sh

@@ -1,0 +1,60 @@
+docker pull postgres:13    	# from dockerhub
+docker pull nginx	    	# from dockerhub
+
+docker images      			# список образов
+docker rmi <name>:<TAG>    	# удаление конкретного образа
+docker rmi <IMAGE_ID>    	# удаление конкретного образа
+docker image prune    		# удаление всех неиспользуемых образов. Очистка от шлака.
+
+docker run -d \				# запуск как демон
+	-- name posgressIlya \	# bestparctice называть контейнеры
+	-p 5432:5432 \			# Docker_port:Port_HostMachine
+	-e POSTGRES_USER=test \	# переменные среды
+	-e POSTGRES_PASS=test \	# переменные среды
+	-e POSTGRES_DB=srvDB \	# 
+	postgres:13
+docker ps					# смотрим активные контейнеры
+docker ps -a				# смотрим ранее активные контейнеры
+docker rm posgressIlya		#
+docker rm -f minikube 2>/dev/null || echo "Контейнер minikube не найден"		# Удаляем контейнер minikube если он есть
+docker container prune -f	# Очищаем все зависшие контейнеры
+docker container ls			# смотрим активные контейнеры
+docker stop posgressIlya	#
+docker start posgressIlya	#
+docker logs posgressIlya	# просмотр событий внутри контейнера
+docker logs -f posgressIlya	# просмотр событий внутри контейнера
+docker top posgressIlya		# Docker namespaces 
+docker stats posgressIlya	# лимиты контейнера
+docker stats				# Просмотр всех процессов всех контейнеров
+ps aux | grep docker		#
+ps aux | grep IL-postgres	#
+docker inspect posgressIlya	# как устроен контейнер в случае отладки .json
+docker inspect \
+	--format= {} \			# ГОСТ templates для автоматизации {range .NetworkSettins.Networks}{.IPAddress}{end}{.LogPath}
+	--name posgressIlya		# ГОСТ templates для автоматизации
+CONTAINER_PID=$(docker inspect --format '{{.State.Pid}}' IL-postgres)
+docker inspect --format '{{.State.Pid}}' имя_контейнера
+docker inspect --format '{{.State.Pid}}' IL-postgres
+docker inspect \
+        --format '{{.State.Pid}}'\
+        -- IL-postgres			# Получить PID контейнераs
+docker volume ls				# список всех Volumes
+docker volume inspect <name>	# заглянуть в Volumes
+docker network ls				#
+docker network inspect	<name>	# 
+docker buid -f frontend.Dockerfile frontend/ -t test
+sudo nsenter -t $CONTAINER_PID -p ps aux
+sudo nsenter -t 1405 -p ps aux	# Показать процессы в namespace контейнера
+
+
+systemctl status docker.service
+systemctl status docker
+journalctl -u docker.service -f
+
+
+
+
+
+
+
+

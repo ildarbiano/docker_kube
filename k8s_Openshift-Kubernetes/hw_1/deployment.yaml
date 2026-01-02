@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-1
+  namespace: homework-1
+  labels:
+    app: app-1-lbl-depl-and-service    #  должно совпадать с selector в service. ЭТО для сервиса
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-app-1-sel-labl     # Это labels Pod'ов в deployment
+                          # ЭТО для поиска Pod'ов, = должны быть одинаковыми.
+                      #   selector.matchLabels должен точно совпадать с template.metadata.labels, чтобы ...
+                    #  Deployment мог найти и управлять созданными Pod'ами!
+  template:
+    metadata:
+      labels:
+        app: web-app-1-sel-labl       # ЭТО на Pod'ах, = должны быть одинаковыми.
+                      #  selector.matchLabels должен точно совпадать с template.metadata.labels, чтобы ...
+                    #  Deployment мог найти и управлять созданными Pod'ами!
+    spec:
+      containers:
+      - name: hello-app
+        image: gcr.io/google-samples/hello-app:1.0
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ENVIRONMENT
+          value: "learning"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"

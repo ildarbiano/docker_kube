@@ -1,0 +1,68 @@
+Postgres 
+docker run --name IL-postgres \
+  -e POSTGRES_DB=il.database \
+  -e POSTGRES_USER=il \
+  -e POSTGRES_PASSWORD=ilya \
+  -p 5432:5432 \
+  -v postgres_data:/var/lib/postgresql/data \
+  -d postgres:15
+
+ilya@client-ubuntu:~$ docker ps
+CONTAINER ID   IMAGE         COMMAND                  CREATED         STATUS         PORTS                                         NAMES
+f729f7c91a9b   postgres:15   "docker-entrypoint.s…"   2 minutes ago   Up 2 minutes   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   my-postgres
+
+ilya@client-ubuntu:~$ docker stop my-postgres
+my-postgres
+
+ilya@client-ubuntu:~$ docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+
+## Требования
+
+* Для успешного выполнения задания нужно установить на host машину:
+    * git;
+    * OpenJDK 11;
+    * Docker.
+====== git =============
+sudo apt install git
+ilya@client-ubuntu:~/dockers$ 			git --version
+git version 2.34.1
+
+====== OpenJDK 11 ======
+sudo apt update
+sudo apt install openjdk-11-jdk
+ilya@client-ubuntu:~/dockers$ 			java -version
+openjdk version "11.0.28" 2025-07-15
+OpenJDK Runtime Environment (build 11.0.28+6-post-Ubuntu-1ubuntu122.04.1)
+OpenJDK 64-Bit Server VM (build 11.0.28+6-post-Ubuntu-1ubuntu122.04.1, mixed mode, sharing)
+ilya@client-ubuntu:~/dockers$ 			javac -version
+javac 11.0.28
+
+ilya@client-ubuntu:~/dockers$ 			sudo find / -type f -name "*openjdk*" 2>/dev/null
+ilya@client-ubuntu:~/dockers$ 			ls -l /usr/lib/jvm/java-11-openjdk-amd64/
+ilya@client-ubuntu:$ 				ls -l /usr/lib/jvm
+total 8
+lrwxrwxrwx 1 root root   21 Jul 17 20:44 java-1.11.0-openjdk-amd64 -> java-11-openjdk-amd64
+drwxr-xr-x 9 root root 4096 Sep 27 15:27 java-11-openjdk-amd64
+drwxr-xr-x 2 root root 4096 Sep 27 15:27 openjdk-11
+
+ilya@client-ubuntu:$ 				ls -la /usr/lib/jvm/java-11-openjdk-amd64
+total 40
+drwxr-xr-x  9 root root 4096 Sep 27 15:27 .
+drwxr-xr-x  4 root root 4096 Sep 27 15:27 ..
+drwxr-xr-x  2 root root 4096 Sep 27 15:27 bin
+drwxr-xr-x  4 root root 4096 Sep 27 15:27 conf
+lrwxrwxrwx  1 root root   42 Jul 17 20:44 docs -> ../../../share/doc/openjdk-11-jre-headless
+drwxr-xr-x  3 root root 4096 Sep 27 15:27 include
+drwxr-xr-x  2 root root 4096 Sep 27 15:27 jmods
+drwxr-xr-x 73 root root 4096 Sep 27 15:27 legal
+drwxr-xr-x  6 root root 4096 Sep 27 15:27 lib
+drwxr-xr-x  4 root root 4096 Sep 27 15:27 man
+-rw-r--r--  1 root root 1250 Jul 17 20:44 release
+==========================================================================
+
+
+
+
+

@@ -1,0 +1,95 @@
+Преимущества K3s:
+✅ Очень легкий (~50MB RAM)
+✅ Работает на старом Docker
+✅ Быстрый запуск
+✅ Простая установка
+K3s решит все проблемы с памятью и версией Docker! 🚀
+В K3s нет встроенного Helm. Нужно установить Helm отдельно:
+============== k3s + helm ========================================
+curl -sfL https://get.k3s.io | sh -		# Устанавливаем K3s
+sudo k3s kubectl get nodes			# Проверяем установку
+	NAME           STATUS   ROLES                  AGE   VERSION
+	srv1.test.ru   Ready    control-plane,master   20s   v1.33.5+k3s1
+sudo systemctl status k3s			# Проверим что K3s работает
+sudo k3s kubectl get pods -A			# Проверим что K3s работает
+
+-------------- Настраиваем доступ к K3s ---------------------------
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config		# Копируем kubeconfig
+sudo chown $USER ~/.kube/config					# 
+sed -i 's/127.0.0.1:6443/localhost:6443/g' ~/.kube/config	# Обновляем server адрес в kubeconfig
+
+============== Проверяем доступ =================================
+kubectl get nodes						# Проверим что кластер работает
+kubectl cluster-info						# Проверим что кластер работает
+helm list	
+helm list --all-namespaces					# Посмотрим все существующие release
+helm list --namespace t1-k8s-app				# Посмотрим release по namespace
+	NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                           APP VERSION
+	d-1             t1-k8s-app      1               2025-10-23 14:18:33.994602835 +0300 MSK failed          helm-chat-t1-k8s-app-0.1.0      1.0.0
+	traefik         kube-system     1               2025-10-23 11:00:00.172702415 +0000 UTC deployed        traefik-34.2.1+up34.2.0         v3.3.2
+	traefik-crd     kube-system     1               2025-10-23 10:59:41.489875951 +0000 UTC deployed        traefik-crd-34.2.1+up34.2.0     v3.3.2
+
+-------------- Загрузим образ-image в K3s -----------------------------------------
+-------------- K3s использует свой container runtime, нужно загрузить образ -------
+docker save java-app-image.1.0.0:latest | sudo k3s ctr images import -		# Сохраняем образ в файл и импортируем
+sudo k3s ctr images list | grep java-app-image					# Проверим что образ загрузился
+
+============== Развертываем приложение ==============================	
+cd ~/k8s-project/helm-chat-t1-k8s-app/
+helm upgrade d-1 ./ --namespace t1-k8s-app					# Применим изменения. Всегда после существенных изменений с : образом, описанием helm-chat
+helm upgrade --install d-1 ./ --namespace t1-k8s-app --create-namespace		# Обновляем существующий кластер
+	Release "d-1" has been upgraded. Happy Helming!
+	NAME: d-1
+	LAST DEPLOYED: Thu Oct 23 14:32:05 2025
+	NAMESPACE: t1-k8s-app
+	STATUS: deployed
+	REVISION: 2
+	TEST SUITE: None
+
+
+-------port-forward для Java application  ---------------------------------------------------------
+Port-forward 							# создаёт туннель, который должен оставаться открытым пока вы используете сервис. 
+Port-forward							# Это нормально что команда "висит" - она работает! Запускаем port-forward (подставьте ваше имя пода)
+Port-forward 							# это инструмент разработки, нужен только для разработки/тестирования
+Port-forward 							# для локального доступа/отладки. Port-forward временный: 
+Port-forward							# Работает только пока запущена команда. Не должен быть частью продакшн деплоя
+Helm								# описывает инфраструктуру приложения! для деплоя приложения в кластер
+kubectl port-forward -n t1-k8s-app service/helm-chat-t1-k8s-app-service 8182:8080
+kubectl port-forward -n t1-k8s-app service/helm-chat-t1-k8s-app-service 8181:8080		# Запускаем port-forward: локальный 8181 → сервисный порт 8080 (Service port)
+		Ваша машина (localhost:8080) 	→	 Kubernetes Service (service:8080) 	→ 	Pod (container:8080)
+kubectl port-forward service/frontend 3000:80 &			# Для разных целей. Одновременно к разным сервисам
+kubectl port-forward service/backend 8080:8080 &		# Для разных целей. Одновременно к разным сервисам
+
+============= Тестировать напрямую через разные соединения =================
+curl http://localhost:8181/address				# Тестируем Java application
+while true; do curl localhost:8181/address; sleep 0.2; done	# Тестируем Java application
+for i in {1..10}; do curl -s localhost:8282/address; sleep 0.5; done	# Последовательные запросы
+for i in {1..10}; do curl -s localhost:8282/address & done; wait	# Параллельные запросы
+while true; do curl -s --max-time 1 localhost:8181/address; sleep 0.1; done
+								# с закрытием соединения
+
+
+
+=======================================================================================
+kubectl delete replicaset -n t1-k8s-app helm-chat-t1-k8s-app-app-67d6b555d6
+								# Удалим старый ReplicaSet 
+kubectl patch deployment -n t1-k8s-app helm-chat-t1-k8s-app-app -p '{"spec":{"replicas":2}}'
+								# Патчим Deployment чтобы использовать только новый ReplicaSet
+kubectl scale replicaset/helm-chat-t1-k8s-app-app-5456ff4cdd -n t1-k8s-app --replicas=2
+kubectl scale replicaset/helm-chat-t1-k8s-app-app-67d6b555d6 -n t1-k8s-app --replicas=0
+								# явно масштабируем старый ReplicaSet до 0
+
+
+========================== Отановка Application ======================================
+sudo systemctl stop k3s
+------------------------- Автоматическое восстановление при включении
+После включения VM:
+	K3s автоматически запустится
+	Пода автоматически восстановятся до желаемого состояния (replicaCount из values.yaml)
+	Не нужно ничего запускать вручную
+
+Важно знать:
+	K3s сохраняет состояние в /var/lib/rancher/k3s/
+	Приложения восстановятся автоматически при запуске
+	Данные в Persistent Volumes сохранятся
+	Ingress и Service конфигурации сохранятся

@@ -1,0 +1,13 @@
+TCP-рукопожатие : https://stormwall.pro/knowledge-base/termin/tcp-handshake
+
+Что такое 3-х этапное рукопожатие TCP? : https://ddos-guard.net/ru/terminology/protocols/3-h-etapnoe-rukopozhatie-tcp
+
+Что такое TLS : https://habr.com/ru/post/258285/
+
+Протокол RAS : https://ru.wikipedia.org/wiki/RSA
+
+Wireshark (документация, англ.) : https://www.wireshark.org/
+
+5 недостатков Wirwshark : https://networkguru.ru/5_nedostatkov_wireshark/
+
+Снифферы и не только. Выбираем инструмент для перехвата и анализа траффика : https://xakep.ru/2021/05/17/sniffers-windows/

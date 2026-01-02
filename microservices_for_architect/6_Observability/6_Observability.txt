@@ -1,0 +1,26 @@
+Observability (наблюдаемость) в разработке программного обеспечения — это концепция, которая означает, насколько легко и эффективно можно наблюдать, измерять и понимать, что происходит внутри системы на основе данных, которые она производит. 
+Это позволяет:
+-	быстро обнаруживать, диагностировать и устранять проблемы;
+-	улучшать производительность и безопасность системы;
+-	понимать поведение системы со временем.
+ЖМТ
+Жуналирование
+Мониторинг
+Трассировка
+
+Схема взаимодействия сервисов
+Grafana & Prometheus, как средство сбора метрик
+Интерфейс Grafana & Prometheus
+Создание собственных дашбордов
+ELK Stack + Filebeat
+ELK Stack на практике
+Jaeger
+Jaeger на практике
+
+
+Grafana: инструмент для удобной визуализации метрик мониторинга	https://mcs.mail.ru/blog/grafana-instrument-udobnoy-vizualizatsii-metrik-monitoringa
+Grafana как инструмент для технического мониторинга	https://slurm.io/tpost/7efb9byg97-grafana-kak-instrument-dlya-tehnicheskog
+Мониторинг сервисов с Prometheus	https://selectel.ru/blog/monitoring-servisov-s-prometheus/
+Используйте ELK для создания платформы журналов для микросервисов	https://russianblogs.com/article/74571171970/
+Полное отслеживание ссылок микросервиса: jaeger интегрирует istio и совместим с uber-trace-id и b3	https://russianblogs.com/article/64661668710/
+Диагностируем проблемы в микросервисной архитектуре на Node.js с помощью OpenTracing и Jaeger	https://habr.com/ru/articles/489552

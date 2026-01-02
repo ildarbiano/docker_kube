@@ -1,0 +1,12 @@
+https://team.t1.ru/wiki/3a11d950-4732-95af-9a63-efd75a73d8fe
+
+Gradle Wrapper: 		https://www.baeldung.com/gradle-building-a-java-app
+Docker Network (alias): 	https://docs.docker.com/engine/reference/commandline/network_connect/
+Docker Internals:
+		http://docker-saigon.github.io/post/Docker-Internals/
+		https://tkssharma.com/understanding-docker-internals/
+Docker Compose:
+		https://habr.com/ru/company/ruvds/blog/450312/
+		https://www.baeldung.com/ops/docker-compose
+		https://github.com/docker/awesome-compose
+Доклад Алексея Романова 	https://www.youtube.com/watch?v=hGq92xdevyo

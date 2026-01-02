@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: homework-2
+  labels:
+    project: homework-2-label
+    environment: learning

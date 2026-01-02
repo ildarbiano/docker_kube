@@ -1,0 +1,95 @@
+Для тестирования/разработки: MicroK8s или Minikube
+Требования к системе: 
+Минимум 
+2GB RAM, 				free -h
+2 vCPU, 				nproc
+20GB дискового пространства. 
+
+RAM: ≥ 2GB (лучше 4GB+)				free -h
+vCPU: ≥ 2 ядра (лучше 4+)			nproc
+Disk: ≥ 20GB свободного места (лучше 40GB+)	df -h / | tail -1
+Architecture: x86_64/amd64			uname -m
+
+Проверка поддержки виртуализации (для Minikube)
+bash
+grep -Eoc '(vmx|svm)' /proc/cpuinfo
+Если результат больше 0 - виртуализация поддерживается.
+============================== Ubuntu Asible-docker ===============================
+ilya@client-ubuntu:~/deploy-dock-k7s_T1$ uname -m
+x86_64
+ilya@client-ubuntu:~/deploy-dock-k7s_T1$ echo "=== RAM ===" && free -h && echo -e "\n=== CPU ===" && nproc && echo -e "\n=== Disk ===" && df -h / | tail -1
+
+=== RAM ===    total        used        free      shared  buff/cache   available
+Mem:           957Mi       248Mi       277Mi        10Mi       431Mi       540Mi
+Swap:          1.9Gi        25Mi       1.8Gi
+
+=== CPU ===
+1
+
+=== Disk ===
+/dev/sda2        44G   18G   25G  42% /
+==================Анализ ваших ресурсов:
+RAM: 957MiB (0.95GB) - требуется минимум 2GB ❌
+CPU: 1 ядро - требуется минимум 2 ядра ❌
+Disk: 25GB свободно - соответствует требованиям ✅
+Architecture: x86_64 - соответствует ✅
+
+Проблемы:
+Недостаточно оперативной памяти - всего 0.95GB вместо 2GB
+Всего 1 ядро процессора вместо требуемых 2 ядер
+Мало памяти приведет к сбоям даже если удастся запустить
+================================================ Astra =========================
+admilya@srv1:~$ echo "=== RAM ===" && free -h && echo -e "\n=== CPU ===" && nproc && echo -e "\n=== Disk ===" && df -h / | tail -1
+=== RAM ===
+              total        used        free      shared  buff/cache   available
+Mem:           3,8G        137M        3,6G        9,6M        141M        3,5G
+Swap:          4,0G          0B        4,0G
+
+=== CPU ===
+2
+
+=== Disk ===
+/dev/mapper/astra--net--terminal--vg-root    20G         4,6G   15G           25% /
+admilya@srv1:~$ uname -m
+x86_64
+========== Анализ ресурсов:
+RAM: 3.8GB total, 3.5GB available - отлично ✅
+CPU: 2 ядра - соответствует минимальным требованиям ✅
+Disk: 15GB свободно - достаточно ✅
+Architecture: x86_64 - поддерживается ✅
+-------------------------------
+sudo apt update && sudo apt install -y curl wget
+admilya@srv1:~$ sudo touch /etc/resolv.conf
+admilya@srv1:~$ echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+nameserver 8.8.8.8
+admilya@srv1:~$ echo "nameserver 8.8.4.4" | sudo tee -a /etc/resolv.conf
+nameserver 8.8.4.4
+admilya@srv1:~$ echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
+nameserver 1.1.1.1
+admilya@srv1:~$ cat /etc/resolv.conf
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+admilya@srv1:~$ sudo apt install -y curl
+
+-------------------------------
+Minikube (для разработки)
+bash
+# Установка
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+admilya@srv1:~$ minikube version
+minikube version: v1.37.0
+commit: 65318f4cfff9c12cc87ec9eb8f4cdd57b25047f3
+# Запуск
+minikube start --driver=docker
+----------
+Устанавливаем Docker
+bash
+sudo apt install -y docker.io
+sudo systemctl enable docker
+sudo systemctl start docker
+sudo usermod -aG docker $USER
+newgrp docker
+
+

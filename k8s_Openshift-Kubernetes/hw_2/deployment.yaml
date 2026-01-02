@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-2
+  namespace: homework-2
+  labels:
+    app: app-2-lbl-depl-and-service    #  должно совпадать с selector в service. ЭТО для сервиса
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-app-2-sel-labl     # Это labels Pod'ов в deployment
+        # ЭТО для поиска Pod'ов, = должны быть одинаковыми.
+        #   selector.matchLabels должен точно совпадать с template.metadata.labels, чтобы ...
+      #  Deployment мог найти и управлять созданными Pod'ами!
+  template:
+    metadata:
+      labels:
+        app: web-app-2-sel-labl       # ЭТО на Pod'ах, = должны быть одинаковыми.
+          #  selector.matchLabels должен точно совпадать с template.metadata.labels, чтобы ...
+        #  Deployment мог найти и управлять созданными Pod'ами!
+    spec:
+      containers:
+        - name: hw2-app
+          image: tonnelier/my-app-2-hub:v2
+          ports:
+          - containerPort: 8080
+          env:
+          - name: ENVIRONMENT      # ← добавить name:
+            value: "learning"      # ← и value:
+          resources:
+            requests:
+              memory: "100Mi"
+              cpu: "100m"
+            limits:
+              memory: "500Mi"
+              cpu: "500m"

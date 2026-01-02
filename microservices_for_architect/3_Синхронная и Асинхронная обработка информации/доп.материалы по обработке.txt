@@ -1,0 +1,27 @@
+Использование асинхронного обмена сообщениями для улучшения доступности : https://habr.com/ru/company/piter/blog/458344/
+
+Зачем нужны очереди сообщений в микросервисной архитектуре: разбираем преимущества и недостатки : https://mcs.mail.ru/blog/zachem-nuzhny-ocheredi-soobshcheniy-v-mikroservisnoy-arkhitekture
+
+Sync vs Async : https://otus.ru/nest/post/2091/
+
+gzip (англ.) : https://www.gzip.org/
+
+Использование политики DNS для балансировки нагрузки приложений : https://docs.microsoft.com/ru-ru/windows-server/networking/dns/deploy/app-lb
+
+DNS балансировка : https://highload.today/dns-balansirovka/
+
+Service Discovery в распределенных системах на примере Consul : https://habr.com/ru/post/487706/
+
+Service Discovery: принцип действия : https://mcs.mail.ru/blog/service-discovery
+
+Трассировка сервисов, OpenTracing и Jaeger : https://habr.com/ru/company/srg/blog/446752/
+
+Секреты observability. Часть 3: распределённая трассировка с Jaeger и OpenTelemetry : https://habr.com/ru/company/southbridge/blog/574322/
+
+Механизм Fail Fast : https://russianblogs.com/article/6148454582/
+
+Чем различаются Kafka и RabbitMQ: простыми словами : https://habr.com/ru/amp/publications/698838/
+
+RabbitMQ и Apache Kafka: что выбрать и можно ли интегрировать : https://slurm.io/tpost/phdmogo9y1-rabbitmq-i-apache-kafka-chto-vibrat-i-mo?amp=true
+
+Декартово (прямое) произведение : https://ru.wikipedia.org/wiki/%D0%9F%D1%80%D1%8F%D0%BC%D0%BE%D0%B5_%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%B5%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5

@@ -1,0 +1,99 @@
+=====================запуск Minikube=================================================
+minikube start --driver=docker			# Запуск контейнера minikube
+minikube start {				# Запуск контейнера minikube с указанием парметров запуска
+  --driver=docker \
+  --memory=2000mb \
+  --cpus=2	
+}
+minikube status					# Проверим статус Minikube
+minikube logs					# Посмотрим логи Minikube
+kubectl get nodes				# Проверим что кластер работает
+kubectl cluster-info				# Проверим что кластер работает
+===========если успешно, то управление через helm ==>>>>>>>>>========================
+minikube start --ports 8080:80
+8080	outside
+80	inside
+minikube addons enable ingress			# для создания сущностей ingress
+minikube addons enable metrics-server		# для сбора в k8s метрик для отображения на dashboard
+
+
+==================== tunell from windows to linux host ================================
+Powershell
+ssh -L 8181:127.0.0.1:8181 admilya@srv1
+http://localhost:32935/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+----- может измениться порт -----------------
+решения, для проверки, что Дашборд не запущен на сервере
+cat dashboard.log						# Смотрим логи дашборда
+ps aux | grep dashboard						# Проверим запущенные процессы дашборда
+minikube kubectl -- get pods -n kubernetes-dashboard		# Проверим pod дашборда
+kubectl get pods -n kubernetes-dashboard			# Проверим статус дашборда. Находим под дашборда
+pkill -f "kubectl proxy"					# Останавливаем старые процессы
+pkill -f "minikube dashboard"					# Останавливаем старые процессы
+minikube dashboard --url					# перезапустим дашборд
+* Verifying dashboard health ...
+* Launching proxy ...
+* Verifying proxy health ...
+http://127.0.0.1:36585/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+kubectl port-forward -n kubernetes-dashboard pod/kubernetes-dashboard-855c9754f9-6lzxz 8080:9090 
+minikube dashboard --url			# запуск дашборда
+* Verifying dashboard health ...
+* Launching proxy ...
+* Verifying proxy health ...
+http://127.0.0.1:32935/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+^C
+minikube kubectl -- get pods -n kubernetes-dashboard 		# получить точное имя пода.
+NAME                                         READY   STATUS    RESTARTS   AGE
+dashboard-metrics-scraper-77bf4d6c4c-r8xcg   1/1     Running   0          28m
+kubernetes-dashboard-855c9754f9-sgt49        1/1     Running   0          28m
+
+-------port-forward для kubernetes-dashboard  ---------------------------------------------------------
+Port-forward 							# это туннель, который должен оставаться открытым пока вы используете сервис. Это нормально что команда "висит" - она работает! 					# Запускаем port-forward (подставьте ваше имя пода)
+minikube kubectl -- describe pod -n kubernetes-dashboard kubernetes-dashboard-855c9754f9-6lzxz | grep -i port	# Посмотрим описание пода чтобы узнать порт
+    Port:          9090/TCP					# Pod Дашбордa слушает на порту 9090.
+    Host Port:     0/TCP
+kill %3 2>/dev/null						# Останавливаем старые процессы
+minikube kubectl -- port-forward -n kubernetes-dashboard pod/kubernetes-dashboard-855c9754f9-6lzxz 8181:9090 &	# Перенаправляет локальный порт linux:8181 на порт 9090:pod дашборда (& фоном). # Запускаем с правильными портами: 8181(local) -> 9090(pod)
+???? cat dashboard.log						# Смотрим логи дашборда
+
+------ Используем фиксированный порт -----------------
+kubectl proxy --port=8181 --address='0.0.0.0' &			# На сервере запускаем proxy на фиксированном порту
+ssh -L 8181:127.0.0.1:8181 admilya@srv1				# На Windows обновляем туннель
+curl http://localhost:8181					# ожидается html страница
+http://127.0.0.1:8181/
+Команда minikube dashboard --url запускает свой собственный proxy, который вам не нужен, поскольку у вас уже работает ваш proxy на порту 8181. Не нужно запускать minikube dashboard --url - так как уже всё работает через ручной proxy! Minikube proxy на порту{} - лишний, можно останавливать
+Pod	Java_app	:8080
+Pod	Dashboard	:9090	>> local linux	:8181	>>	http://demo.local:8181/	Windows	:8181
+
+-------port-forward для Java application  ---------------------------------------------------------
+kubectl port-forward -n t1-k8s-app service/helm-chat-t1-k8s-app-service 8080:8080		# Запускаем port-forward: локальный 8080 → сервисный порт 8080
+curl http://localhost:8080/address								# Тестируем Java application
+
+==========================================================================================
+
+
+kubectl get namespaces			Проверить все существующие namespace
+kubectl get ns				Проверить все существующие namespace
+Namespace default 			это встроенный системный namespace, который не хранится в файлах как обычные ресурсы. Но вот где можно найти информацию о нем:
+kubectl describe namespace default	Детальная информация о default namespace. Системные namespace создаются автоматически при инициализации кластера и их конфигурации хранятся в etcd.
+kubectl create namespace t1-k8s-app	Создаем namespace для проекта. Это виртуальный кластер внутри Kubernetes. Логическое разделение ресурсов в кластере. Существует внутри etcd (база данных Kubernetes). Используется для изоляции: pods, services, deployments и т.д. Namespace t1-k8s-app = как "комната" в офисе (виртуальное пространство)
+---------------------------------
+ls -la ~/.minikube/			Конфигурационные файлы Minikube
+ls ~/.minikube/profiles/		Файлы кластера
+mkdir -p ~/k8s-project/manifests	Это физическая папка на вашем сервере. Для хранения YAML файлов (манифестов). Нужна для организации кода и версионирования. Не связана напрямую с Kubernetes namespace. Директория manifests = как "папка с чертежами" на столе (физическое хранение)\touch ~/k8s-project/manifests/namespace.yaml ~/k8s-project/manifests/deployment.yaml ~/k8s-project/manifests/service.yaml
+~/k8s-project/                    	# ← ДИРЕКТОРИЯ на сервере
+├── manifests/                    	# ← ПОДДИРЕКТОРИЯ для файлов
+│   ├── namespace.yaml           	# ← ФАЙЛ который создает NAMESPACE
+│   ├── deployment.yaml          	# ← Файл для деплоймента
+│   └── service.yaml             	# ← Файл для сервиса
+
+cat namespace.yaml 
+	apiVersion: v1
+	kind: Namespace
+	metadata:
+	  name: t1-k8s-app				Это уникальное имя ресурса в Kubernetes. Используется для идентификации и обращения к ресурсу. Обязательное поле. name: t1-k8s-app = как "паспортное имя" человека - уникальное.
+	  labels:
+	    project: t1-app				Это метки для группировки и фильтрации. Необязательные ключ-значение пары. Используются для селекторов и запросов. labels: project: t1-app = как "бейджик" с отделом/ролью - для группировки.
+	    environment: production
+kubectl apply -f manifests/namespace.yaml	kubectl apply (декларативный подход) Сохраняет конфигурацию в аннотациях. Позволяет отслеживать изменения. Создаем заново через apply (сохранит конфигурацию)
+==================
+

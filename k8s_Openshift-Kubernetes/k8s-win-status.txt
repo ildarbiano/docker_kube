@@ -1,0 +1,106 @@
+========== пожелания нейросети ===============================
+minikube service -n homework web-service --url	# Быстрый доступ к приложению
+kubectl get all -n homework			# Просмотр всех ресурсов в namespace
+kubectl delete -f deployment.yaml		# Удаление ресурсов
+kubectl delete -f service.yaml			# Удаление ресурсов
+
+=========== Docker Desktop через Powershell ==========================================
+powershell
+Get-Service -Name "Docker Desktop Service"	# Проверьте, запущен ли Docker Desktop и Kubernetes
+
+=========== Kubernetes ==================================================================
+minikube status					# выведет статус компонент Kubernetes внутри контейнера
+kubectl get namespaces				# Проверить что есть
+minikube service list				# проверка - используем IP
+kubectl get all					# Должен показывать:
+		# - Pod (из deployment)
+		# - Deployment
+		# - ReplicaSet  
+		# - Service (если создан)
+
+=========== kubectl nodes/pods ====================================================================
+kubectl get nodes				# после запуска, Должна быть нода. Использует системный kubectl (который вы установили). Когда конфигурация настроена правильно. kubectl - "обычный" способ, который требует правильной настройки.
+minikube kubectl -- get nodes -o wide		# после запуска, Должна быть нода. Использует kubectl ВНУТРИ minikube контейнера/VM. Версия kubectl совместима с версией Kubernetes в 	minikube. Гарантированно работает с текущим кластером minikube. Не зависит от вашей системной установки kubectl. minikube kubectl -- - это "безопасный" способ. Полезно. 	Используйте minikube kubectl -- когда:
+minikube kubectl -- get nodes			# Когда ваш системный kubectl не настроен
+kubectl get nodes				# Проверяем кластер
+kubectl cluster-info				# Проверяем кластер
+kubectl get pods				# 
+kubectl get pods -A				# Для повседневной работы (удобнее)
+kubectl get pods -n homework -o wide		# Проверим что поды действительно работают. Посмотрим IP подов. Должны увидеть те же IP, что в Endpoints.
+kubectl logs deployment/web			# Посмотрите логи пода
+	2025/11/03 13:36:47 Server listening on port 8080
+kubectl logs <pod-name>				# Проверить логи приложения. # Посмотреть логи пода (замените на имя вашего пода)
+kubectl logs <pod-name> -n homework		# Если под в другом namespace
+kubectl logs -f <pod-name>			# Посмотреть логи в реальном времени
+
+------------ Контекст namespace -----------------------------
+kubectl get namespaces				# посмотреть 
+	NAME                   STATUS   AGE
+	default                Active   7h12m
+	ingress-nginx          Active   127m	# это Ingress Controller, который мы установили через Minikube addon. Это нормально! Что такое ingress-nginx namespace:
+		✅ ingress-nginx - это контроллер, который обрабатывает Ingress ресурсы
+		✅ Он ждет когда вы создадите Ingress ресурсы
+		✅ Без него Ingress не будет работать
+	kube-node-lease        Active   7h12m
+	kube-public            Active   7h12m
+	kube-system            Active   7h12m
+	kubernetes-dashboard   Active   3h42m
+context	namespace 				- это "текущая рабочая папка" в Kubernetes. Как в командной строке вы можете быть в разных папках, так и в kubectl вы можете работать в разных namespace.
+context	namespace 				- это как "текущая папка" в Kubernetes. Когда вы устанавливаете namespace, все команды kubectl выполняются в этом namespace, если явно не указано иное.
+kubectl config view				# Посмотреть полную информацию о контексте
+kubectl config current-context			# Проверьте текущий контекст
+kubectl config get-contexts			# Посмотрите все доступные контексты
+	Зачем это нужно?
+	Безопасность - не видите чужие ресурсы
+	Удобство - не нужно постоянно указывать -n homework
+	Организация - логическое разделение проектов
+kubectl config set-context --current --namespace=homework		# Установить homework как namespace по умолчанию
+kubectl config view --minify --output 'jsonpath={..namespace}'		# Проверить текущий namespace
+kubectl delete namespace homework		# Удаляем все ресурсы в namespace homework
+
+----------- Service ----------------------------------------
+kubectl get services				# Посмотреть все сервисы
+minikube tunnel					# для назначения внешнего адреса для кластера
+и
+minikube service -n homework web-service --url	# Получить URL для доступа к сервису, по порту
+kubectl get services -n homework		# сервис отличный от default
+но сначало
+minikube tunnel					# для получения внешнего адреса
+kubectl get svc					# или сокращенно
+kubectl describe svc web			# Проверим сервис подробнее. Подробная информация о сервисе
+kubectl apply -f service.yaml			# применить изменения
+
+----------- Deployment ------------------------------------
+kubectl get deployment
+kubectl describe deployment web -n homework	# Подробная информация о deployment в namespace homework
+
+----------- Ingress ---------------------------------------
+Ingress 					- это профессиональное решение для доступа к сервисам 
+						- это правильное решение для доступа к сервисам по доменным именам. В Minikube нужно включить Ingress контроллер.
+Установка и настройка Ingress в Minikube. Включите Ingress контроллер в Minikube
+powershell
+Addon (аддон) 					— это дополнительный компонент, который улучшает или расширяет функциональность существующей программы, игры или системы. Например, в играх аддоны добавляют новый контент, а в браузере — новые функции или инструменты. 
+minikube addons disable ingress			# 
+minikube addons enable ingress			# Включить ingress addon
+minikube addons list | findstr ingress		# Проверить статус. Это просто статус настроек Minikube, а не реальное состояние кластера.
+kubectl get ingress -n homework		
+kubectl get pods -n ingress-nginx		# Показывает реальные работающие поды в кластере.
+kubectl delete ingress example-ingress -n homework
+kubectl apply -f .\ingress.yaml			# Применить ingress ресурс
+kubectl apply -f ingress.yaml
+kubectl get ingress -n homework			# Проверить
+kubectl get ingress -A				# Проверим текущую конфигурацию ingress
+kubectl get ingress example-ingress -n homework -o yaml
+kubectl delete ingress web-ingress -n homework	# Удалить ingress из правильного namespace
+
+
+----- доступность через порт-форвардинг к ingress ------------------------
+powershell
+# Порт-форвардинг к ingress контроллеру
+kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 8888:80
+kubectl port-forward -n ingress-nginx service/ingress-nginx-controller --address 0.0.0.0 8888:80
+------ tunnel ----------------------------------------
+# Остановите текущий tunnel (Ctrl+C)
+# Запустите PowerShell от АДМИНИСТРАТОРА и выполните:
+minikube tunnel --cleanup
+minikube tunnel

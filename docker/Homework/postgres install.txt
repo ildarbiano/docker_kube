@@ -1,0 +1,156 @@
+Postgres 
+# Запуск контейнера с явным указанием пользователя. Для первичного входа под за-hardкоженным пользователем.
+docker run -d \
+   --name PIL-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=password \
+  -p 5432:5432 \
+  postgres:15
+После можно настроить/добавить пользователя
+# Подключение как правильный пользователь
+docker exec -it my-postgres psql -U postgres
+
+# В psql создаем нужного пользователя
+CREATE USER il WITH PASSWORD 'ilpassword';
+CREATE DATABASE ildb;
+GRANT ALL PRIVILEGES ON DATABASE ildb TO il;
+
+# Теперь можно подключаться как il
+docker exec -it my-postgres psql -U il -d ildb
+
+
+docker run --name 2IL-postgres \
+  -e POSTGRES_DB=ilDB \
+  -e POSTGRES_USER=il \
+  -e POSTGRES_PASSWORD=ilya \
+  -p 5432:5432 \
+  -v postgres_data:/var/lib/postgresql/data \
+  -d postgres:15
+
+
+5. Если забыли пароль postgres пользователя
+Перезапуск контейнера с сбросом аутентификации:
+bash
+# Остановить контейнер
+docker stop my-postgres
+
+# Запустить с доверительной аутентификацией
+docker run -it --rm --name temp-postgres \
+  -e POSTGRES_HOST_AUTH_METHOD=trust \
+  -p 5432:5432 \
+  postgres:15
+
+# В другом терминале подключиться без пароля
+docker exec -it temp-postgres psql -U postgres
+
+# Сбросить пароль
+ALTER USER postgres PASSWORD 'newpassword';
+
+
+ilya@client-ubuntu:~$ docker ps
+CONTAINER ID   IMAGE         COMMAND                  CREATED         STATUS         PORTS                                         NAMES
+f729f7c91a9b   postgres:15   "docker-entrypoint.s…"   2 minutes ago   Up 2 minutes   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   my-postgres
+
+ilya@client-ubuntu:~$ docker stop my-postgres
+my-postgres
+
+ilya@client-ubuntu:~$ docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+======== psql =======================
+Через psql внутри контейнера:
+bash
+# Подключиться к запущенному контейнеру
+docker exec -it имя_контейнера psql -U пользователь -d база_данных
+# Пример:
+docker exec -it 2IL-postgres psql -U il -d ilDB
+docker exec -it 2IL-postgres psql -U postgres
+
+Через bash и затем psql:
+bash
+docker exec -it IL-postgres bash
+psql -U postgres
+
+-------- psql -----------------
+postgres=# \dt				# запрос таблиц
+
+========= Базовый синтаксис INSERT =============================
+sql
+-- Вставка одной записи
+INSERT INTO table_name (column1, column2, ...) 
+VALUES (value1, value2, ...);
+
+-- Вставка нескольких записей
+INSERT INTO table_name (column1, column2) 
+VALUES 
+    (value1, value2),
+    (value3, value4),
+    (value5, value6);
+
+-- Вставка с возвратом данных
+INSERT INTO table_name (name, age) 
+VALUES ('Иван', 25) 
+RETURNING id, name;
+-- Примеры
+sql
+-- Создаем таблицу
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    surname VARCHAR(100),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+postgres=# CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    surname VARCHAR(100),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+CREATE TABLE
+postgres=# \dt
+         List of relations
+ Schema | Name  | Type  |  Owner
+--------+-------+-------+----------
+ public | users | table | postgres
+(1 row)
+
+
+-- Вставка данных
+INSERT INTO users (name, surname) 
+VALUES 
+    ('Алексей', 'Petrov'),
+    ('Мария', 'Ivanova');
+
+-- Вставка с возвратом ID
+INSERT INTO users (name, email) 
+VALUES ('Петр', 'petr@gmail.com') 
+RETURNING id;
+ 
+===== Чтение данных (SELECT) ============================
+Базовый синтаксис SELECT
+sql
+-- Выбор всех колонок
+SELECT * FROM table_name;
+
+-- Выбор конкретных колонок
+SELECT column1, column2 FROM table_name;
+
+-- С условием WHERE
+SELECT * FROM table_name WHERE condition;
+
+-- Сортировка
+SELECT * FROM table_name ORDER BY column_name DESC;
+
+-- Ограничение количества строк
+SELECT * FROM table_name LIMIT 10;
+Практические примеры
+sql
+-- Все пользователи
+SELECT * FROM users;
+postgres=# SELECT * FROM users;
+ id |  name   | surname |         created_at
+----+---------+---------+----------------------------
+  1 | Алексей | Petrov  | 2025-09-27 14:12:18.975104
+  2 | Мария   | Ivanova | 2025-09-27 14:12:18.975104
+(2 rows)

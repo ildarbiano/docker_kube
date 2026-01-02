@@ -1,0 +1,97 @@
+========= helm ==============================================
+# Скачиваем и устанавливаем Helm
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh				# запуск установки
+helm version				# Проверяем установку
+helm create helm-chat.t1-k8s-app	# Создаем структуру Helm chart	
+admilya@srv1:~/k8s-project$ 		tree helm-chat.t1-k8s-app
+helm-chat.t1-k8s-app
+├── charts
+├── Chart.yaml
+├── templates
+│   ├── deployment.yaml
+│   ├── _helpers.tpl
+│   ├── hpa.yaml
+│   ├── httproute.yaml
+│   ├── ingress.yaml
+│   ├── NOTES.txt
+│   ├── serviceaccount.yaml
+│   ├── service.yaml
+│   └── tests
+│       └── test-connection.yaml
+└── values.yaml
+# Копируем ваши манифесты в templates (сохраняем оригиналы!)
+cp manifests/namespace.yaml helm-chat.t1-k8s-app/templates/
+-------------------- Образ - Приложение - Deploy --------------------------
+==================== Развертываем приложение ==============================
+minikube image load java-app-image.1.0.0			# загрузка образа
+minikube image ls | grep java-app-image				# Проверим что образ загружен в Minikube
+helm install d-1 ~/k8s-project/helm-chat-t1-k8s-app/		# создать новый release (выпуск) приложения (Deploy) и автоматически развертывает все необходимые для его работы ресурсы, такие как: развертывания, сервисы и конфиги. 
+helm upgrade --install d-1 ./helm-chat-t1-k8s-app/ {
+  --namespace t1-k8s-app \
+  --create-namespace \
+}								# Обновляем приложения
+	Release "d-1" has been upgraded. Happy Helming!
+	NAME: d-1
+	LAST DEPLOYED: Thu Oct 23 14:32:05 2025
+	NAMESPACE: t1-k8s-app
+	STATUS: deployed
+	REVISION: 2
+	TEST SUITE: None
+helm upgrade d-1 ./ --namespace t1-k8s-app			# Применим изменения. Всегда после существенных изменений с : образом, описанием helm-chat
+helm upgrade d-1 . -n t1-k8s-app				# Выполним обновление. Всегда после существенных изменений с : с новой стратегией
+helm list --all-namespaces					# Посмотрим все существующие release
+helm list --namespace t1-k8s-app				# Посмотрим release по namespace
+kubectl get pods -n t1-k8s-app					# Проверим статус
+kubectl get pods -n t1-k8s-app -o custom-columns="POD:.metadata.name,IMAGE:.spec.containers[*].image"
+								# Проверим образы, который используется
+kubectl describe pod -n t1-k8s-app -l app=helm-chat-t1-k8s-app | grep -A10 "Events"		# Проверим статус
+kubectl get all -n t1-k8s-app					# Проверим статус приложения Pods
+
+kubectl describe pod { \					
+  -n t1-k8s-app \
+  -l app=helm-chat-t1-k8s-app | grep "Image:" \
+}								# Проверим образы, который используется	
+docker images | grep java-app-image				# Образ
+helm template d-1 ./helm-chat-t1-k8s-app/			# генерируем манифест
+helm template test ./helm-chat.t1-k8s-app/ | grep "image:"	# сгенерируем манифест чтобы увидеть итоговый образ
+helm get manifest d-1 -n t1-k8s-app | grep image:		# образ прописанный в манифесте
+cat values.yaml | grep -A3 "image:"				# образ прописанный в манифесте values
+cat templates/deployment.yaml | grep "image:"			# образ прописанный в манифесте deployment
+minikube image ls | grep java-app-image				# Проверим что образ загружен в Minikube
+helm template test ./helm-chat-t1-k8s-app/ | grep "image:"	# сгенерируем манифест чтобы увидеть итоговый образ
+=================== после установки helm ==============================
+===================Проверим сетевые настройки===========================
+curl -k https://192.168.49.2:8443/version	# Проверим можем ли подключиться к API серверу
+minikube kubectl -- get nodes			# Или через minikube
+minikube status					# Проверим статус Minikube
+-------Если проблемы с сетью--------------------------------------------
+minikube stop					# остановка процесса
+timeout 30s minikube stop			# Если не работает, ждем немного и пробуем с таймаутом
+minikube delete					# Удалим и пересоздадим Minikube кластер
+minikube start
+minikube start --driver=docker			# с конкретным драйвером
+minikube start --ports 8080:80
+8080	outside
+80	inside
+-------Если зависли процессы--------------------------------------------
+sudo pkill -f minikube				# Останавливаем все minikube процессы
+docker ps -a | grep minikube | awk '{print $1}' | xargs -r docker rm -f	# Останавливаем все docker контейнеры связанные с minikube
+ps aux | grep minikube				# Проверяем что не осталось процессов
+timeout 10s docker stop minikube || docker kill minikube
+sudo docker kill minikube			# Принудительно убиваем контейнер
+sudo systemctl stop docker			# останавливает docker	# Ждем полной остановки sleep 10
+sudo pkill -9 dockerd				# Принудительно убиваем все Docker процессы
+sudo pkill -9 docker-containerd			# Принудительно убиваем все Docker процессы
+sudo systemctl start docker			# Запускаем docker заново
+docker ps					# Проверяем что docker работает
+-------Принудительно удаляем контейнер minikube--------------------------
+docker rm -f minikube 2>/dev/null || true	# Удаляем контейнер minikube
+docker rm -f minikube 2>/dev/null || echo "Контейнер minikube не найден"	# Удаляем контейнер minikube если он есть
+docker container prune -f			# Очищаем все зависшие контейнеры
+minikube delete --all --purge			# Полностью очистим и переустановим Minikube
+rm -rf ~/.minikube ~/.kube			# Полностью очистим и переустановим Minikube
+
+================================
+helm history d-1 -n t1-k8s-app			# Посмотрим историю Helm
